@@ -20,4 +20,5 @@
 ```
 
 # run demo
+see package.json
 

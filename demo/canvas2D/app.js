@@ -64,7 +64,7 @@
 /******/
 /******/ 	var hotApplyOnUpdate = true;
 /******/ 	// eslint-disable-next-line no-unused-vars
-/******/ 	var hotCurrentHash = "f52982b21f34f5f73060";
+/******/ 	var hotCurrentHash = "3def7060ceb05766f07d";
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule;
@@ -803,19 +803,22 @@
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./util */ "./canvas2D/src/component/PanoramicViewer/util.js");
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+
 
 var AnchorPoint = function () {
 
     // x, y 表示球面坐标系的 维度 和 精度， 最大值为 1
 
-    function AnchorPoint(x, y, content, nextUrl, nextAnchors, renderNext) {
+    function AnchorPoint(lon, lat, content, nextUrl, nextAnchors, renderNext) {
         _classCallCheck(this, AnchorPoint);
 
-        this.x = x;
-        this.y = y;
+        this.lon = lon;
+        this.lat = lat;
         this.content = content;
 
         this.nextUrl = nextUrl;
@@ -826,12 +829,14 @@ var AnchorPoint = function () {
         this.IMAGE_HEIGHT = 0;
         this.VIEW_WIDTH = 0;
         this.VIEW_HEIGHT = 0;
-
-        this.static_x = 0;
-        this.static_y = 0;
     }
 
     _createClass(AnchorPoint, [{
+        key: 'addSubAnchors',
+        value: function addSubAnchors(array) {
+            this.nextAnchors = array;
+        }
+    }, {
         key: 'createAnchorElement',
         value: function createAnchorElement(IMAGE_WIDTH, IMAGE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT) {
             var _this = this;
@@ -845,9 +850,6 @@ var AnchorPoint = function () {
             this.VIEW_WIDTH = VIEW_WIDTH;
             this.VIEW_HEIGHT = VIEW_HEIGHT;
 
-            this.static_x = this.IMAGE_WIDTH * this.x;
-            this.static_y = this.IMAGE_HEIGHT * this.y;
-
             this.ele = ele;
 
             ele.addEventListener('click', function () {
@@ -858,16 +860,14 @@ var AnchorPoint = function () {
         }
     }, {
         key: 'moveAt',
-        value: function moveAt(current_x, current_y) {
-            if (this.IMAGE_WIDTH - current_x < this.VIEW_WIDTH / 3) {
-                current_x = -(this.IMAGE_WIDTH - current_x);
-            }
-
-            var percentY = (this.static_y - (current_y - this.VIEW_HEIGHT / 2)) / this.VIEW_HEIGHT * 100;
-            var percentX = (this.static_x - (current_x - this.VIEW_WIDTH / 2)) / this.VIEW_WIDTH * 100;
-
-            this.ele.style.top = percentY + '%';
-            this.ele.style.left = percentX + '%';
+        value: function moveAt(camera_lon, camera_lat) {
+            var diff_lat = camera_lat - this.lat;
+            var diff_lon = Object(_util__WEBPACK_IMPORTED_MODULE_0__["validateLongititude"])(camera_lon - this.lon);
+            var offset_y = diff_lat / 180 * this.IMAGE_HEIGHT + this.VIEW_HEIGHT / 2;
+            var offset_x = this.VIEW_WIDTH / 2 - diff_lon / 360 * this.IMAGE_WIDTH;
+            this.ele.style.top = offset_y / this.VIEW_HEIGHT * 100 + '%';
+            this.ele.style.left = offset_x / this.VIEW_WIDTH * 100 + '%';
+            this.ele.style.transform = 'translate(-50%, -50%) rotateX(' + diff_lat + 'deg) rotateY(' + diff_lon + 'deg)';
         }
     }]);
 
@@ -875,6 +875,59 @@ var AnchorPoint = function () {
 }();
 
 /* harmony default export */ __webpack_exports__["default"] = (AnchorPoint);
+
+/***/ }),
+
+/***/ "./canvas2D/src/component/PanoramicViewer/Coordinator.js":
+/*!***************************************************************!*\
+  !*** ./canvas2D/src/component/PanoramicViewer/Coordinator.js ***!
+  \***************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Coordinator = function () {
+  function Coordinator(IMAGE_WIDTH, IMAGE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT) {
+    _classCallCheck(this, Coordinator);
+
+    this.IMAGE_WIDTH = IMAGE_WIDTH;
+    this.IMAGE_HEIGHT = IMAGE_HEIGHT;
+    this.VIEW_WIDTH = VIEW_WIDTH;
+    this.VIEW_HEIGHT = VIEW_HEIGHT;
+  }
+
+  _createClass(Coordinator, [{
+    key: "setSize",
+    value: function setSize(IMAGE_WIDTH, IMAGE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT) {
+      this.IMAGE_WIDTH = IMAGE_WIDTH;
+      this.IMAGE_HEIGHT = IMAGE_HEIGHT;
+      this.VIEW_WIDTH = VIEW_WIDTH;
+      this.VIEW_HEIGHT = VIEW_HEIGHT;
+    }
+  }, {
+    key: "getImageLeftTopPosAt",
+    value: function getImageLeftTopPosAt(lon, lat) {
+      var x = (lon - -180) / 360 * this.IMAGE_WIDTH - this.VIEW_WIDTH / 2;
+      var y = -(lat - 90) / 180 * this.IMAGE_HEIGHT - this.VIEW_HEIGHT / 2;
+
+      x = Math.floor(x);
+      y = Math.floor(y);
+
+      return {
+        x: x, y: y
+      };
+    }
+  }]);
+
+  return Coordinator;
+}();
+
+/* harmony default export */ __webpack_exports__["default"] = (new Coordinator());
 
 /***/ }),
 
@@ -929,10 +982,10 @@ var ImageData = function () {
             var targetIndex = 0;
             if (y >= this.HEIGHT) {
                 y = 2 * this.HEIGHT - y;
-                x = x + Math.floor(this.WIDTH / 2);
+                x = x + Math.round(this.WIDTH / 2);
             } else if (y < 0) {
                 y = -y;
-                x = x + Math.floor(this.WIDTH / 2);
+                x = x + Math.round(this.WIDTH / 2);
             }
             if (x > this.WIDTH) {
                 x = x - this.WIDTH;
@@ -966,6 +1019,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ImageData__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ImageData */ "./canvas2D/src/component/PanoramicViewer/ImageData.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./util */ "./canvas2D/src/component/PanoramicViewer/util.js");
 /* harmony import */ var _AnchorPoint__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./AnchorPoint */ "./canvas2D/src/component/PanoramicViewer/AnchorPoint.js");
+/* harmony import */ var _Coordinator__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Coordinator */ "./canvas2D/src/component/PanoramicViewer/Coordinator.js");
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -973,6 +1027,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
 
 
 
@@ -991,22 +1046,22 @@ var PanoramicViewer = function (_React$Component) {
 
         _this.imageLoad = _this.imageLoad.bind(_this);
         _this.handleMousemove = _this.handleMousemove.bind(_this);
-        _this.handleTouchmove = _this.handleTouchmove.bind(_this);
-        _this.handleTouchstart = _this.handleTouchstart.bind(_this);
-        _this.x = 0;
-        _this.y = 0;
+
         _this.imageData = null;
         _this.ctx = null;
-        _this.touchX = 0;
-        _this.touchY = 0;
+
         _this.IMAGE_WIDTH = 0;
         _this.IMAGE_HEIGHT = 0;
         _this.VIEW_WIDTH = 0;
         _this.VIEW_HEIGHT = 0;
 
+        // 纬度: -90 - 90
+        _this.lat = 0;
+        // 经度: -180  - 180 
+        _this.lon = 0;
+
         _this.imageLoaded = false;
 
-        _this.anchors = [];
         return _this;
     }
 
@@ -1015,8 +1070,6 @@ var PanoramicViewer = function (_React$Component) {
         value: function componentDidMount() {
             this.refs.sourceImage.addEventListener('load', this.imageLoad);
             this.refs.viewport.addEventListener('mousemove', this.handleMousemove);
-            this.refs.viewport.addEventListener('touchmove', this.handleTouchmove);
-            this.refs.viewport.addEventListener('touchstart', this.handleTouchstart);
         }
     }, {
         key: 'imageLoad',
@@ -1030,14 +1083,14 @@ var PanoramicViewer = function (_React$Component) {
 
             var IMAGE_WIDTH = sourceImage.width;
             var IMAGE_HEIGHT = sourceImage.height;
-            var size = Object(_util__WEBPACK_IMPORTED_MODULE_4__["calcViewSize"])(IMAGE_WIDTH, IMAGE_HEIGHT, screen.width, screen.height);
+            var size = Object(_util__WEBPACK_IMPORTED_MODULE_4__["calcViewSize"])(IMAGE_WIDTH, IMAGE_HEIGHT, window.innerWidth, window.innerHeight);
             var VIEW_WIDTH = size.width;
             var VIEW_HEIGHT = size.height;
-            this.x = Math.floor((IMAGE_WIDTH - VIEW_WIDTH) / 2);
-            this.y = Math.floor((IMAGE_HEIGHT - VIEW_HEIGHT) / 2);
+
+            _Coordinator__WEBPACK_IMPORTED_MODULE_6__["default"].setSize(IMAGE_WIDTH, IMAGE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT);
+
             console.log('IMAGE_WIDTH: ' + IMAGE_WIDTH + ';IMAGE_HEIGHT:' + IMAGE_HEIGHT);
             console.log('VIEW_WIDTH: ' + VIEW_WIDTH + ';VIEW_HEIGHT:' + VIEW_HEIGHT);
-            console.log('x: ' + this.x + '; y:' + this.y);
 
             sourceCanvas.width = IMAGE_WIDTH;
             sourceCanvas.height = IMAGE_HEIGHT;
@@ -1068,43 +1121,10 @@ var PanoramicViewer = function (_React$Component) {
             this.imageLoaded = true;
         }
     }, {
-        key: 'handleTouchstart',
-        value: function handleTouchstart(e) {
-            var _e$changedTouches$ = e.changedTouches[0],
-                clientX = _e$changedTouches$.clientX,
-                clientY = _e$changedTouches$.clientY;
-
-            this.touchX = clientX;
-            this.touchY = clientY;
-            e.preventDefault();
-        }
-    }, {
-        key: 'handleTouchmove',
-        value: function handleTouchmove(e) {
-            if (!this.imageLoaded) {
-                console.log('image is not loaded.');
-                return;
-            }
-            var _e$changedTouches$2 = e.changedTouches[0],
-                clientX = _e$changedTouches$2.clientX,
-                clientY = _e$changedTouches$2.clientY;
-
-
-            var moveX = clientX - this.touchX;
-            var moveY = clientY - this.touchY;
-
-            this.x += moveX;
-            this.y += moveY;
-            this.x = Object(_util__WEBPACK_IMPORTED_MODULE_4__["limitX"])(this.x, this.IMAGE_WIDTH);
-            this.y = Object(_util__WEBPACK_IMPORTED_MODULE_4__["limitY"])(this.y, this.IMAGE_HEIGHT, this.VIEW_HEIGHT);
-            this.repaint();
-            this.touchX = clientX;
-            this.touchY = clientY;
-            e.preventDefault();
-        }
-    }, {
         key: 'handleMousemove',
         value: function handleMousemove(ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
             var movementX = ev.movementX,
                 movementY = ev.movementY;
 
@@ -1113,10 +1133,14 @@ var PanoramicViewer = function (_React$Component) {
                 return;
             }
             if (ev.which !== 0) {
-                this.x += movementX;
-                this.y += movementY;
-                this.x = Object(_util__WEBPACK_IMPORTED_MODULE_4__["limitX"])(this.x, this.IMAGE_WIDTH);
-                this.y = Object(_util__WEBPACK_IMPORTED_MODULE_4__["limitY"])(this.y, this.IMAGE_HEIGHT, this.VIEW_HEIGHT);
+                this.lon += movementX;
+                this.lat -= movementY;
+                // 需要限定 lon 的有效值范围： -180， 180，并且为循环
+                // lat 的有效值范围： -85， 85，停止增加
+                this.lon = Object(_util__WEBPACK_IMPORTED_MODULE_4__["validateLongititude"])(this.lon);
+                this.lat = Object(_util__WEBPACK_IMPORTED_MODULE_4__["validateLattitude"])(this.lat);
+                console.log('\u7ECF\u5EA6:' + this.lon + ', \u7EAC\u5EA6:' + this.lat);
+
                 this.repaint();
             }
         }
@@ -1125,13 +1149,16 @@ var PanoramicViewer = function (_React$Component) {
         value: function repaint() {
             var _this3 = this;
 
-            var data = this.imageData.getDataAt(this.x, this.y);
+            // 整体画布上的，视角区域的左上角的坐标值
+            var pos = _Coordinator__WEBPACK_IMPORTED_MODULE_6__["default"].getImageLeftTopPosAt(this.lon, this.lat);
+            var data = this.imageData.getDataAt(pos.x, pos.y);
             this.ctx.putImageData(data, 0, 0);
-            console.log('x: ' + this.x + '; y:' + this.y);
+
+            // 处理埋点元素
             var anchors = this.props.anchors;
 
             anchors.forEach(function (anchor) {
-                anchor.moveAt(_this3.x, _this3.y);
+                anchor.moveAt(_this3.lon, _this3.lat);
             });
         }
     }, {
@@ -1155,11 +1182,7 @@ var PanoramicViewer = function (_React$Component) {
                     ref: 'viewport',
                     className: 'viewport'
                 }),
-                react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement(
-                    'div',
-                    { ref: 'labelgroup' },
-                    'North'
-                )
+                react__WEBPACK_IMPORTED_MODULE_1___default.a.createElement('div', { ref: 'labelgroup' })
             );
         }
     }]);
@@ -1237,50 +1260,50 @@ if(true) {
 /*!********************************************************!*\
   !*** ./canvas2D/src/component/PanoramicViewer/util.js ***!
   \********************************************************/
-/*! exports provided: limitX, limitY, calcViewSize */
+/*! exports provided: validateLongititude, validateLattitude, calcViewSize */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "limitX", function() { return limitX; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "limitY", function() { return limitY; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validateLongititude", function() { return validateLongititude; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "validateLattitude", function() { return validateLattitude; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "calcViewSize", function() { return calcViewSize; });
-var VALID_VIEWPORT_ANGLE = 120;
+var FOV = 75;
 
-function limitX(x, WIDTH) {
-    if (x < 0) {
-        return limitX(x + WIDTH, WIDTH);
-    } else if (x >= WIDTH) {
-        return x % WIDTH;
-    } else {
-        return x;
-    }
+// -180  180
+function validateLongititude(lon) {
+  var res = lon + 180;
+  while (res < 0) {
+    res += 360;
+  }
+  res = res % 360;
+  return res - 180;
 }
 
-function limitY(y, HEIGHT, VIEW_HEIGHT) {
-    if (y > HEIGHT - Math.floor(VIEW_HEIGHT / 2)) {
-        return HEIGHT - Math.floor(VIEW_HEIGHT / 2);
-    } else if (y < -Math.floor(VIEW_HEIGHT / 2)) {
-        return -Math.floor(VIEW_HEIGHT / 2);
-    } else {
-        return y;
-    }
+// -85  85
+function validateLattitude(lat) {
+  if (lat >= 85) {
+    lat = 85;
+  } else if (lat <= -85) {
+    lat = -85;
+  }
+  return lat;
 }
 
 function calcViewSize(IMAGE_WIDTH, IMAGE_HEIGHT, sceenWidth, sceenHeight) {
-    var ratio = sceenWidth / sceenHeight;
-    var MAX_LEN = Math.floor(IMAGE_WIDTH * VALID_VIEWPORT_ANGLE / 360);
-    var width = MAX_LEN,
-        height = MAX_LEN;
-    if (ratio > 1) {
-        height = Math.floor(width / ratio);
-    } else if (ratio < 1) {
-        width = Math.floor(height * ratio);
-    }
-    return {
-        width: width,
-        height: height
-    };
+  var ratio = sceenWidth / sceenHeight;
+  var MAX_LEN = Math.floor(IMAGE_WIDTH * FOV / 360);
+  var width = MAX_LEN,
+      height = MAX_LEN;
+  if (ratio > 1) {
+    height = Math.floor(width / ratio);
+  } else if (ratio < 1) {
+    width = Math.floor(height * ratio);
+  }
+  return {
+    width: width,
+    height: height
+  };
 }
 
 /***/ }),
@@ -1300,8 +1323,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_dom__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _component_PanoramicViewer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./component/PanoramicViewer */ "./canvas2D/src/component/PanoramicViewer/index.jsx");
 /* harmony import */ var _component_PanoramicViewer_AnchorPoint__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./component/PanoramicViewer/AnchorPoint */ "./canvas2D/src/component/PanoramicViewer/AnchorPoint.js");
-/* harmony import */ var _sample_jpg__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./sample.jpg */ "./canvas2D/src/sample.jpg");
-/* harmony import */ var _sample_jpg__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_sample_jpg__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _sample_1_jpg__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./sample_1.jpg */ "./canvas2D/src/sample_1.jpg");
+/* harmony import */ var _sample_1_jpg__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_sample_1_jpg__WEBPACK_IMPORTED_MODULE_4__);
 /* harmony import */ var _sample_2_jpg__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./sample_2.jpg */ "./canvas2D/src/sample_2.jpg");
 /* harmony import */ var _sample_2_jpg__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_sample_2_jpg__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var _sample_3_png__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./sample_3.png */ "./canvas2D/src/sample_3.png");
@@ -1316,14 +1339,22 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+var URL_1 = _sample_1_jpg__WEBPACK_IMPORTED_MODULE_4___default.a;
 var URL_2 = _sample_2_jpg__WEBPACK_IMPORTED_MODULE_5___default.a;
 var URL_3 = _sample_3_png__WEBPACK_IMPORTED_MODULE_6___default.a;
 
-var anchors = [new _component_PanoramicViewer_AnchorPoint__WEBPACK_IMPORTED_MODULE_3__["default"](0, 0.3, 'SOUTH', URL_2, [], renderUrl), new _component_PanoramicViewer_AnchorPoint__WEBPACK_IMPORTED_MODULE_3__["default"](0.25, 0.3, 'WEST', URL_2, [], renderUrl), new _component_PanoramicViewer_AnchorPoint__WEBPACK_IMPORTED_MODULE_3__["default"](0.5, 0.3, 'NORTH', URL_3, [], renderUrl), new _component_PanoramicViewer_AnchorPoint__WEBPACK_IMPORTED_MODULE_3__["default"](0.75, 0.3, 'EAST', URL_3, [], renderUrl)];
+var anchor1 = new _component_PanoramicViewer_AnchorPoint__WEBPACK_IMPORTED_MODULE_3__["default"](-180, 0, 'SOUTH', URL_1, [], renderPanorama);
+var anchor2 = new _component_PanoramicViewer_AnchorPoint__WEBPACK_IMPORTED_MODULE_3__["default"](-90, 0, 'WEST', URL_3, [], renderPanorama);
+var anchor3 = new _component_PanoramicViewer_AnchorPoint__WEBPACK_IMPORTED_MODULE_3__["default"](0, 0, 'NORTH', URL_3, [], renderPanorama);
+var anchor4 = new _component_PanoramicViewer_AnchorPoint__WEBPACK_IMPORTED_MODULE_3__["default"](90, 0, 'EAST', URL_3, [], renderPanorama);
 
-renderUrl(_sample_jpg__WEBPACK_IMPORTED_MODULE_4___default.a, anchors);
+anchor1.addSubAnchors([anchor3]);
 
-function renderUrl(url) {
+var anchors = [anchor1, anchor2, anchor3, anchor4];
+
+renderPanorama(URL_2, anchors);
+
+function renderPanorama(url) {
   var anchors = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
 
   var container = document.getElementById('app');
@@ -1337,10 +1368,10 @@ function renderUrl(url) {
 
 /***/ }),
 
-/***/ "./canvas2D/src/sample.jpg":
-/*!*********************************!*\
-  !*** ./canvas2D/src/sample.jpg ***!
-  \*********************************/
+/***/ "./canvas2D/src/sample_1.jpg":
+/*!***********************************!*\
+  !*** ./canvas2D/src/sample_1.jpg ***!
+  \***********************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
@@ -1382,7 +1413,7 @@ exports = module.exports = __webpack_require__(/*! ../../../../node_modules/_css
 
 
 // module
-exports.push([module.i, "html::-webkit-scrollbar,\nbody::-webkit-scrollbar {\n  width: 0;\n  height: 0; }\n\nhtml,\nbody {\n  display: block;\n  overflow: hidden;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0; }\n\n.panoramic-viewer {\n  width: 100%;\n  height: 100%; }\n  .panoramic-viewer .source-image {\n    display: none; }\n  .panoramic-viewer .source-canvas {\n    display: none; }\n  .panoramic-viewer .viewport {\n    width: 100%;\n    height: 100%; }\n\n.panoramic-viewer.fullscreen {\n  position: fixed;\n  left: 0;\n  right: 0;\n  top: 0;\n  bottom: 0; }\n  .panoramic-viewer.fullscreen .viewport {\n    width: 100%;\n    height: 100%; }\n\n.panoramic-viewer .label {\n  position: fixed;\n  z-index: 100;\n  top: 0;\n  height: 50px;\n  line-height: 50px;\n  background: transparent;\n  font-size: 50px;\n  font-weight: 900;\n  color: yellow; }\n  .panoramic-viewer .label:hover {\n    cursor: pointer; }\n", ""]);
+exports.push([module.i, "html::-webkit-scrollbar,\nbody::-webkit-scrollbar {\n  width: 0;\n  height: 0; }\n\nhtml,\nbody {\n  display: block;\n  overflow: hidden;\n  width: 100%;\n  height: 100%;\n  margin: 0;\n  padding: 0; }\n\n.panoramic-viewer {\n  width: 100%;\n  height: 100%; }\n  .panoramic-viewer .source-image {\n    display: none; }\n  .panoramic-viewer .source-canvas {\n    display: none; }\n  .panoramic-viewer .viewport {\n    width: 100%;\n    height: 100%; }\n\n.panoramic-viewer.fullscreen {\n  position: fixed;\n  left: 0;\n  right: 0;\n  top: 0;\n  bottom: 0; }\n  .panoramic-viewer.fullscreen .viewport {\n    width: 100%;\n    height: 100%; }\n\n.panoramic-viewer .label {\n  position: fixed;\n  z-index: 100;\n  top: 0;\n  height: 50px;\n  line-height: 50px;\n  background: transparent;\n  font-size: 50px;\n  font-weight: 900;\n  color: yellow;\n  user-select: none; }\n  .panoramic-viewer .label:hover {\n    cursor: pointer; }\n", ""]);
 
 // exports
 

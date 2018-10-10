@@ -12,6 +12,18 @@ const DIRECTION_SIGNS = [
   'NORTH', 'EAST', 'SOUTH', 'WEST'
 ];
 
+const URLS = [
+  PANORAMAMIC_IMAGE_SOURCE_1,
+  PANORAMAMIC_IMAGE_SOURCE_2
+];
+
+let index = 0;
+function getNextUrl () {
+  index++;
+  index = index % URLS.length;
+  return URLS[index];
+}
+
 
 var isUserInteracting = false,
 onMouseDownMouseX = 0, onMouseDownMouseY = 0,
@@ -24,6 +36,7 @@ const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.inner
 camera.target = new THREE.Vector3( 0, 0, 0 );
 
 const scene = new THREE.Scene();
+const raycaster = new THREE.Raycaster();
 
 const renderer = new THREE.WebGLRenderer();
 renderer.setPixelRatio( window.devicePixelRatio );
@@ -40,6 +53,35 @@ document.addEventListener( 'mousedown', onPointerStart, false );
 document.addEventListener( 'mousemove', onPointerMove, false );
 document.addEventListener( 'mouseup', onPointerUp, false );
 window.addEventListener( 'resize', onWindowResize, false );
+
+
+document.addEventListener('click', onClick, false);
+
+
+function onClick (event) {
+  event.preventDefault();
+
+  const mouse = new THREE.Vector2();
+  mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+  mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+  raycaster.setFromCamera( mouse, camera );
+
+  const intersections = raycaster.intersectObjects( scene.children );
+
+  for (let i = 0; i < intersections.length; i++) {
+    let name = intersections[i].object.name.split("_")[0];
+    let index = DIRECTION_SIGNS.indexOf(name);
+    if (name === 'WEST') {
+      clearScene(scene);
+      buildScene(scene, getNextUrl ());
+      break;
+    } else if (index > -1) {
+      alert('Only West direction has view, current direction:' + name);
+      break;
+    }   
+  }
+}
 
 
 
@@ -68,6 +110,12 @@ function buildScene(scene, src) {
 
   scene.add( mesh );
 
+}
+
+function clearScene (scene) {
+  while(scene.children.length > 0) { 
+    scene.remove(scene.children[0]); 
+  }
 }
 
 
@@ -215,6 +263,7 @@ function onDocumentMouseWheel( event ) {
 
 }
 
+
 function animate() {
 
   requestAnimationFrame( animate );
@@ -228,9 +277,9 @@ function update() {
   phi = THREE.Math.degToRad( 90 - lat );
   theta = THREE.Math.degToRad( lon );
 
-  camera.target.x = 500 * Math.sin( phi ) * Math.cos( theta );
-  camera.target.y = 500 * Math.cos( phi );
-  camera.target.z = 500 * Math.sin( phi ) * Math.sin( theta );
+  camera.target.x = PANORAMA_DISTANCE * Math.sin( phi ) * Math.cos( theta );
+  camera.target.y = PANORAMA_DISTANCE * Math.cos( phi );
+  camera.target.z = PANORAMA_DISTANCE * Math.sin( phi ) * Math.sin( theta );
 
   camera.lookAt( camera.target );
 

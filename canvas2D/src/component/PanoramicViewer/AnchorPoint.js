@@ -19,8 +19,10 @@ export default class AnchorPoint {
         this.IMAGE_HEIGHT = 0;
         this.VIEW_WIDTH = 0;
         this.VIEW_HEIGHT = 0;
+    }
 
-
+    addSubAnchors (array) {
+      this.nextAnchors = array; 
     }
 
     createAnchorElement (IMAGE_WIDTH, IMAGE_HEIGHT, VIEW_WIDTH, VIEW_HEIGHT) {
@@ -53,3 +55,6 @@ export default class AnchorPoint {
       this.ele.style.transform = `translate(-50%, -50%) rotateX(${diff_lat}deg) rotateY(${diff_lon}deg)`;
     }
 }
+
+
+

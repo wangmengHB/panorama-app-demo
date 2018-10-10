@@ -87,7 +87,27 @@ function onClick (event) {
 
 
 function buildScene(scene, src) {
+  addTextSigns(scene);
+  const geometry = new THREE.SphereBufferGeometry( PANORAMA_DISTANCE, 60, 40 );
+  // invert the geometry on the x-axis so that all of the faces point inward
+  geometry.scale( - 1, 1, 1 );
 
+  const material = new THREE.MeshBasicMaterial( {
+    map: new THREE.TextureLoader().load( src)
+  } );
+  const mesh = new THREE.Mesh( geometry, material );
+  scene.add( mesh );
+
+}
+
+function clearScene (scene) {
+  while(scene.children.length > 0) { 
+    scene.remove(scene.children[0]); 
+  }
+}
+
+
+function addTextSigns (scene) {
   const loader = new THREE.FontLoader();
   loader.load( FONT_TYPE_FACE, function ( font ) {
 
@@ -97,25 +117,6 @@ function buildScene(scene, src) {
     addTextSignToScene(scene, font, 'EAST', 'right');		
 
   } );
-
-  const geometry = new THREE.SphereBufferGeometry( PANORAMA_DISTANCE, 60, 40 );
-  // invert the geometry on the x-axis so that all of the faces point inward
-  geometry.scale( - 1, 1, 1 );
-
-  const material = new THREE.MeshBasicMaterial( {
-    map: new THREE.TextureLoader().load( src)
-  } );
-
-  const mesh = new THREE.Mesh( geometry, material );
-
-  scene.add( mesh );
-
-}
-
-function clearScene (scene) {
-  while(scene.children.length > 0) { 
-    scene.remove(scene.children[0]); 
-  }
 }
 
 
@@ -288,60 +289,7 @@ function update() {
   camera.position.copy( camera.target ).negate();
   */
 
-
   renderer.render( scene, camera );
 
 }
 
-
-
-/*
-
-  document.addEventListener( 'wheel', onDocumentMouseWheel, false );
-
-  document.addEventListener( 'touchstart', onPointerStart, false );
-  document.addEventListener( 'touchmove', onPointerMove, false );
-  document.addEventListener( 'touchend', onPointerUp, false );
-
-
-
-  document.addEventListener( 'dragover', function ( event ) {
-
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'copy';
-
-  }, false );
-
-  document.addEventListener( 'dragenter', function ( event ) {
-
-    document.body.style.opacity = 0.5;
-
-  }, false );
-
-  document.addEventListener( 'dragleave', function ( event ) {
-
-    document.body.style.opacity = 1;
-
-  }, false );
-
-  document.addEventListener( 'drop', function ( event ) {
-
-    event.preventDefault();
-
-    var reader = new FileReader();
-    reader.addEventListener( 'load', function ( event ) {
-
-      material.map.image.src = event.target.result;
-      material.map.needsUpdate = true;
-
-    }, false );
-    reader.readAsDataURL( event.dataTransfer.files[ 0 ] );
-
-    document.body.style.opacity = 1;
-
-  }, false );
-
-
-
-
-*/

@@ -1,0 +1,45 @@
+{
+  "name": "panoramamic-app-demo",
+  "version": "1.0.0",
+  "description": "this is a demo to show how to implement a panoramamic application.",
+  "scripts": {
+    "threejs-demo": "http-server three-js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wangmengHB/panoramamic-app-demo.git"
+  },
+  "keywords": [
+    "panoramaic"
+  ],
+  "author": "Meng Wang <wangmeng_hb@163.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wangmengHB/panoramamic-app-demo/issues"
+  },
+  "homepage": "https://github.com/wangmengHB/panoramamic-app-demo#readme",
+  "devDependencies": {
+    "http-server": "^0.11.1",
+    "url-loader": "^1.0.1",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "css-loader": "^1.0.0",
+    "html-webpack-plugin": "^3.2.0",
+    "node-sass": "^4.9.1",
+    "sass-loader": "^7.0.3",
+    "style-loader": "^0.21.0",
+    "webpack": "^4.15.1",
+    "webpack-cli": "^3.0.8",
+    "webpack-dev-server": "^3.1.4"
+  },
+  "dependencies": {
+    "prop-types": "^15.6.2",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1"
+  }
+}

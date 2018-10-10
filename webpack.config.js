@@ -5,7 +5,6 @@ let webpack = require('webpack')
 
 module.exports = {
     mode: 'development',
-    watch: true,
     resolve: {
         extensions: ['.js', '.jsx', '.json'],
     },
@@ -40,7 +39,7 @@ module.exports = {
     plugins: [
         new HtmlWebpackPlugin({
             title: 'a panoramic image',
-            template: 'index.html',
+            template: './canvas2D/src/index.html',
         }),
         new webpack.HotModuleReplacementPlugin()
     ],
@@ -51,7 +50,7 @@ module.exports = {
         contentBase: false, 
         compress: true,
         host: '0.0.0.0',
-        port: 8080,
+        port: 8082,
         useLocalIp: true,
         open: true,
         overlay: { 

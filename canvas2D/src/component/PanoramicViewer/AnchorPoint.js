@@ -1,12 +1,14 @@
+import {validateLongititude} from './util';
+
 
 
 export default class AnchorPoint {
 
     // x, y 表示球面坐标系的 维度 和 精度， 最大值为 1
 
-    constructor (x, y, content, nextUrl, nextAnchors, renderNext) {
-        this.x = x;
-        this.y = y;
+    constructor (lon, lat, content, nextUrl, nextAnchors, renderNext) {
+        this.lon = lon;
+        this.lat = lat;
         this.content = content;
 
         this.nextUrl = nextUrl;
@@ -18,8 +20,6 @@ export default class AnchorPoint {
         this.VIEW_WIDTH = 0;
         this.VIEW_HEIGHT = 0;
 
-        this.static_x = 0;
-        this.static_y = 0;
 
     }
 
@@ -33,9 +33,6 @@ export default class AnchorPoint {
         this.VIEW_WIDTH = VIEW_WIDTH;
         this.VIEW_HEIGHT = VIEW_HEIGHT;
 
-        this.static_x = this.IMAGE_WIDTH * this.x;
-        this.static_y = this.IMAGE_HEIGHT * this.y;
-
         this.ele = ele;
 
         ele.addEventListener('click', () => {
@@ -46,15 +43,13 @@ export default class AnchorPoint {
         return ele;
     }
 
-    moveAt (current_x, current_y) {
-        if (this.IMAGE_WIDTH - current_x < this.VIEW_WIDTH/3) {
-            current_x = -(this.IMAGE_WIDTH - current_x)
-        }
-
-        let percentY = (this.static_y - (current_y - this.VIEW_HEIGHT/2)) / this.VIEW_HEIGHT * 100;
-        let percentX = (this.static_x - (current_x - this.VIEW_WIDTH/2)) / this.VIEW_WIDTH * 100;
-        
-        this.ele.style.top = `${percentY}%`;
-        this.ele.style.left = `${percentX}%`;
+    moveAt (camera_lon, camera_lat) {
+      let diff_lat = camera_lat - this.lat;
+      let diff_lon = validateLongititude(camera_lon - this.lon);
+      let offset_y = (diff_lat / 180) * this.IMAGE_HEIGHT + this.VIEW_HEIGHT/2;
+      let offset_x = this.VIEW_WIDTH/2 - (diff_lon/360) * this.IMAGE_WIDTH;
+      this.ele.style.top = `${offset_y/this.VIEW_HEIGHT * 100}%`;
+      this.ele.style.left = `${offset_x/this.VIEW_WIDTH * 100}%`;
+      this.ele.style.transform = `translate(-50%, -50%) rotateX(${diff_lat}deg) rotateY(${diff_lon}deg)`;
     }
 }

@@ -1,28 +1,29 @@
-const VALID_VIEWPORT_ANGLE = 120
+const FOV = 75;
 
-export function limitX (x, WIDTH) {
-    if (x < 0 ) {
-        return limitX(x + WIDTH, WIDTH)
-    } else if (x >= WIDTH) {
-        return x % WIDTH
-    } else {
-        return x
-    }
+// -180  180
+export function validateLongititude (lon) {
+  let res = lon + 180;
+  while (res < 0) {
+    res += 360;
+  }
+  res = res % 360;
+  return res - 180;
 }
 
-export function limitY (y, HEIGHT, VIEW_HEIGHT) {
-    if (y > HEIGHT - Math.floor(VIEW_HEIGHT /2)) {
-        return HEIGHT - Math.floor(VIEW_HEIGHT / 2)
-    } else if (y < -Math.floor(VIEW_HEIGHT/2)) {
-        return -Math.floor(VIEW_HEIGHT / 2)
-    } else {
-        return y
-    }
+// -85  85
+export function validateLattitude (lat) {
+  if (lat >= 85) {
+    lat = 85;
+  } else if (lat <= -85) {
+    lat = -85;
+  }
+  return lat;
 }
+
 
 export function calcViewSize (IMAGE_WIDTH, IMAGE_HEIGHT, sceenWidth, sceenHeight) {
     const ratio = sceenWidth / sceenHeight
-    const MAX_LEN = Math.floor(IMAGE_WIDTH * VALID_VIEWPORT_ANGLE / 360)
+    const MAX_LEN = Math.floor(IMAGE_WIDTH * FOV / 360)
     let width = MAX_LEN, height = MAX_LEN
     if (ratio > 1) {
         height = Math.floor(width / ratio)

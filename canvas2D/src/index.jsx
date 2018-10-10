@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom'
 import PanoramicViewer from './component/PanoramicViewer'
 import AnchorPoint from './component/PanoramicViewer/AnchorPoint'
 
-import SAMPLE from './sample.jpg'
+import SAMPLE_1 from './sample_1.jpg'
 import SAMPLE_2 from './sample_2.jpg'
 import SAMPLE_3 from './sample_3.png'
 
@@ -15,21 +15,17 @@ const URL_3 = SAMPLE_3;
 
 
 const anchors = [
-  new AnchorPoint(0, 0.3, 'SOUTH', URL_2, [], renderUrl),
-  new AnchorPoint(0.25, 0.3, 'WEST', URL_2, [], renderUrl),
-  new AnchorPoint(0.5, 0.3, 'NORTH', URL_3, [], renderUrl),
-  new AnchorPoint(0.75, 0.3, 'EAST', URL_3, [], renderUrl),
+  new AnchorPoint(-180, 0, 'SOUTH', URL_2, [], renderPanorama),
+  new AnchorPoint(-90, 0, 'WEST', URL_2, [], renderPanorama),
+  new AnchorPoint(0, 0, 'NORTH', URL_3, [], renderPanorama),
+  new AnchorPoint(90, 0, 'EAST', URL_3, [], renderPanorama),
 ]
 
 
+renderPanorama(SAMPLE_2, anchors);
 
 
-
-
-renderUrl(SAMPLE, anchors);
-
-
-function renderUrl (url, anchors = []) {
+function renderPanorama (url, anchors = []) {
   const container = document.getElementById('app')
   ReactDOM.unmountComponentAtNode(container)
   ReactDOM.render(

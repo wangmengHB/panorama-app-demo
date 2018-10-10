@@ -11,10 +11,10 @@ module.exports = {
     },
     context: path.resolve(__dirname),
     entry: {
-        app: path.join(__dirname, './src/index.jsx')
+        app: path.join(__dirname, './canvas2D/src/index.jsx')
     },
     output: {
-        path: path.join(__dirname, 'dist'),
+        path: path.join(__dirname, './demo/canvas2D/'),
         filename: '[name].js'
     },
     module: {

@@ -3,14 +3,16 @@
   "version": "1.0.0",
   "description": "this is a demo to show how to implement a panoramamic application.",
   "scripts": {
-    "threejs-demo": "http-server three-js"
+    "threejs-demo": "http-server three-js",
+    "dev": "webpack-dev-server --inline --progress --config webpack.config.js",
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wangmengHB/panoramamic-app-demo.git"
   },
   "keywords": [
-    "panoramaic"
+    "panorama",
+    "demo"
   ],
   "author": "Meng Wang <wangmeng_hb@163.com>",
   "license": "MIT",

@@ -25,15 +25,19 @@ function getNextUrl () {
 }
 
 
-var isUserInteracting = false,
+let isUserInteracting = false,
 onMouseDownMouseX = 0, onMouseDownMouseY = 0,
 lon = 0, onMouseDownLon = 0,
-lat = 0, onMouseDownLat = 0,
-phi = 0, theta = 0;
+lat = 0, onMouseDownLat = 0;
 
 
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 1, FAR_DISTANCE );
-camera.target = new THREE.Vector3( 0, 0, 0 );
+const camera = new THREE.PerspectiveCamera( 
+  75, 
+  window.innerWidth / window.innerHeight, 
+  1, 
+  FAR_DISTANCE 
+);
+
 
 const scene = new THREE.Scene();
 const raycaster = new THREE.Raycaster();
@@ -273,16 +277,17 @@ function animate() {
 }
 
 function update() {
+  let target = new THREE.Vector3( 0, 0, 0 );
 
   lat = Math.max( - 85, Math.min( 85, lat ) );
-  phi = THREE.Math.degToRad( 90 - lat );
-  theta = THREE.Math.degToRad( lon );
+  let phi = THREE.Math.degToRad( 90 - lat );
+  let theta = THREE.Math.degToRad( lon );
 
-  camera.target.x = PANORAMA_DISTANCE * Math.sin( phi ) * Math.cos( theta );
-  camera.target.y = PANORAMA_DISTANCE * Math.cos( phi );
-  camera.target.z = PANORAMA_DISTANCE * Math.sin( phi ) * Math.sin( theta );
+  target.x = PANORAMA_DISTANCE * Math.sin( phi ) * Math.cos( theta );
+  target.y = PANORAMA_DISTANCE * Math.cos( phi );
+  target.z = PANORAMA_DISTANCE * Math.sin( phi ) * Math.sin( theta );
 
-  camera.lookAt( camera.target );
+  camera.lookAt( target );
 
   /*
   // distortion
